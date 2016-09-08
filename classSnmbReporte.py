@@ -239,6 +239,13 @@ class CrearReporte(object):
     # = Archivos registrados y no entregados
     self.reporte_no_entregados = restar_listas(self.lista_archivos_registrados,
       lista_archivos_entregados)
+      
+    #imprimiendo reportes:
+    pd.DataFrame(self.reporte_ok).to_csv("reporte_ok.csv", encoding='utf-8')
+    pd.DataFrame(self.reporte_incompletos).to_csv("reporte_incompletos.csv",
+      encoding='utf-8')
+    pd.DataFrame(self.reporte_incompletos).to_csv("reporte_no_entregados.csv",
+      encoding='utf-8')
 
     #if modo:
       #return [len(self.reporte_ok),len(self.reporte_incompletos),len(in_file_not_db)]
@@ -259,6 +266,8 @@ class CrearReporte(object):
   #   self.video_num_report = self.analize_documents(self.get_video_files(),self.get_video_dbrecord(),True)
 
   def generar_archivos_reportes(self,files,records,tag):
+    
+    
 
     ofile = open(self.FILES_TAG + "_" + tag + "_" + str(self.date) +"." + self.FILES_TYPE, 'w')
 
