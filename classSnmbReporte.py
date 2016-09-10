@@ -3,43 +3,52 @@
 import datetime
 import pandas as pd
 import os
+import re
 
 from sqlite3 import connect
 from os import walk
 from os.path import isfile, join, splitext
 
-class CrearReporte(object):
-  """docstring for CreateReport"""
+class ReporteadorArchivos(object):
+  """
+  Esta clase crea los diversos reportes que tienen que ver con los archivos
+  físicos y archivos registrados en la base de datos correspondientes a cada
+  entrega. Estos reportes son:
+
+  1. Archivos registrados en la base de datos y entregados completos.
+  2. Archivos registrados en la base de datos y entregados incompletos (peso 0)
+  3. Archivos registrados en la base de datos y no entregados
+  4. Archivos anexos (no registrados en la base) y entregados incompletos
+  5. Archivos anexos (no registrados en la base) y entregados completos
+  """
 
   def __init__(self, ruta_sqlite, ruta_entrega, ruta_query_sql):
-    super(CrearReporte, self).__init__()
+    super(ReporteadorArchivos, self).__init__()
 
     # extensiones aceptadas
     self.extensiones = ["wav","midi","mp3","jpg","jpeg","png","avi","mp4","txt","pdf"]
 
-    # cada archivo registrado en la BD tendrá una de tres posibles etiquetas
-    self.OK_TAG = ["OK","En BD y en archivos, con peso > 0"]
-    self.INCOMPLETOS_TAG = ["I","En BD y en archivos, pero con peso 0"]
-    self.FALTANTES_TAG = ["F", "En BD, pero no en archivos"]
-
-    # reporte de archivos con etiqueta OK
+    # reporte de archivos registrados en la BD y entregados completos
     self.REPORTE_OK_NOMBRE = "ok"
     self.REPORTE_OK_TIPO = "csv"
 
-    # reporte de archivos con etiqueta de incompletos
+    # reporte de archivos registrados en la BD y entregados incompletos
     self.REPORTE_INCOMPLETOS_NOMBRE = "incompletos"
     self.REPORTE_INCOMPLETOS_TIPO = "csv"
 
-    # reporte de archivos con etiqueta de faltantes
+    # reporte de archivos registrados en la BD y no entregados
     self.REPORTE_FALTANTES_NOMBRE = "faltantes"
     self.REPORTE_FALTANTES_TIPO = "csv"
 
+    # reporte de archivos entregados en "datos_anexos", completos y no registrados
+    # en la BD (con su nombre original)
+    self.REPORTE_ANEXOS_COMPLETOS_NOMBRE = "anexos_completos"
+    self.REPORTE_ANEXOS_COMPLETOS_TIPO = "csv"
 
-    #self.AUDIO_TAG = "audios"
-    #self.IMAGE_TAG = "imagenes"
-    #self.VIDEO_TAG = "videos"
-
-    #self.file_col_name = "archivo"
+    # reporte de archivos entregados en "datos_anexos", incompletos y no registrados
+    # en la BD (con su nombre original)
+    self.REPORTE_ANEXOS_INCOMPLETOS_NOMBRE = "anexos_incompletos"
+    self.REPORTE_ANEXOS_INCOMPLETOS_TIPO = "csv"
 
     # path a la base de datos fusionada correspondiente a la entrega (para
     # obtener los archivos registrados en la base de datos)
@@ -69,14 +78,26 @@ class CrearReporte(object):
     # lista de archivos registrados en la BD
     self.lista_archivos_registrados = []
 
-    # reporte OK
+    # lista de archivos anexos y con peso > 0
+    self.lista_archivos_anexos_completos = []
+
+    # lista de archivos anexos y con peso 0
+    self.lista_archivos_anexos_incompletos = []
+
+    # reporte de archivos registrados en la base y entregados completos
     self.reporte_ok = []
 
-    # reporte de archivos incompletos
+    # reporte de archivos registrados en la base y entregados incompletos
     self.reporte_incompletos = []
 
-    # reporte de archivos no entregados
+    # reporte de archivos registrados en la base y no entregados
     self.reporte_no_entregados = []
+
+    # reporte de archivos anexos no registrados en la base y entregados completos
+    self.reporte_anexos_completos = []
+
+    # reporte de archivos anexos no registrados en la base y entregados incompletos
+    self.reporte_anexos_incompletos = []
 
     self.fecha = datetime.date.today()
 
@@ -105,7 +126,8 @@ class CrearReporte(object):
   # extensión está entre las consideradas, ponerlo en la lista correspondiente:
   # "lista_archivos_entregados_completos"
   # "lista_archivos_entregados_incompletos"
-  # dependiendo si su peso es 0 o mayor que 0.
+  # "lista_archivos_anexos_completos" (si su ruta contiene "datos_anexos" y su peso es >0)
+  # "lista_archivos_anexos_incompletos" (si su ruta contiene "datos_anexos" y su peso es =0)
 
   def enlistar_archivos(self):
     for path, subdirs, archivos in walk(self.ruta_entrega):
@@ -123,14 +145,17 @@ class CrearReporte(object):
             "extension": extension
           }
 
-    	  #print datos_archivo
-
           if os.stat(datos_archivo['ruta']).st_size > 0:
             self.lista_archivos_entregados_completos.append(datos_archivo)
+
+            if bool(re.search('datos_anexos', datos_archivo['ruta'])):
+              self.lista_archivos_anexos_completos.append(datos_archivo)
+
           else:
             self.lista_archivos_entregados_incompletos.append(datos_archivo)
-    print self.lista_archivos_entregados_completos
-    print self.lista_archivos_entregados_incompletos
+
+            if bool(re.search('datos_anexos', datos_archivo['ruta'])):
+              self.lista_archivos_anexos_incompletos.append(datos_archivo) 
 
   def enlistar_archivos_registrados_bd(self):
     cursor = connect(self.ruta_sqlite).cursor()
@@ -169,7 +194,7 @@ class CrearReporte(object):
           self.lista_archivos_registrados.append(datos_archivo)
     #print self.lista_archivos_registrados
 
-  def intersectar_listas(self, lista_archivos_registrados,
+  def intersectar_listas_registrados_entregados(self, lista_archivos_registrados,
     lista_archivos_entregados):
 
     data_frame_archivos_registrados = pd.DataFrame(lista_archivos_registrados)
@@ -186,7 +211,7 @@ class CrearReporte(object):
     return interseccion.T.to_dict().values()
 
 
-  def unir_listas(self, lista_archivos_entregados_completos,
+  def unir_listas_entregados(self, lista_archivos_entregados_completos,
     lista_archivos_entregados_incompletos):
 
     data_frame_archivos_entregados_completos = pd.DataFrame(lista_archivos_entregados_completos)
@@ -200,7 +225,7 @@ class CrearReporte(object):
     # Regresamos el resultado como una nueva lista de diccionarios.
     return union.T.to_dict().values()
 
-  def restar_listas(self, lista_archivos_registrados,
+  def restar_listas_registrados_entregados(self, lista_archivos_registrados,
     lista_archivos_entregados):
 
     data_frame_archivos_registrados = pd.DataFrame(lista_archivos_registrados)
@@ -219,32 +244,81 @@ class CrearReporte(object):
     # Regresamos el resultado como una nueva lista de diccionarios.
     return diferencia.T.to_dict().values()
 
+  # La diferencia entre "restar_listas_registrados_entregados()" y
+  # "restar_listas_anexos_registrados()" es:
+  # 1. El orden de la diferencia
+  # 2. La llave sobre la cuál se realiza esta: "nombre_web2py" vs "nombre_original"
+
+  def restar_listas_anexos_registrados(self, lista_archivos_anexos,
+      lista_archivos_registrados):
+
+    data_frame_archivos_anexos = pd.DataFrame(lista_archivos_anexos)
+    data_frame_archivos_registrados = pd.DataFrame(lista_archivos_registrados)
+
+    diferencia_llaves = set(data_frame_archivos_anexos.nombre).difference(
+      data_frame_archivos_registrados.nombre_original)
+
+    indices_diferencia = data_frame_archivos_anexos.nombre.isin(
+      diferencia_llaves)
+
+    diferencia = data_frame_archivos_anexos[indices_diferencia].drop_duplicates(
+      subset = ['nombre'], keep = 'first').sort_values(['nombre'])
+
+    # Regresamos el resultado como una nueva lista de diccionarios.
+    return diferencia.T.to_dict().values()
+
   def crear_reportes(self,file,record,modo):
 
     # interseccion archivos registrados contra archivos entregados completos
     # = Archivos en db y entregados completos
-    self.reporte_ok = intersectar_listas(self.lista_archivos_registrados,
-      self.lista_archivos_entregados_completos)
+    self.reporte_ok = intersectar_listas_registrados_entregados(
+      self.lista_archivos_registrados, self.lista_archivos_entregados_completos)
 
     # intersección archivos registrados contra archivos entregados e incompletos
     # = Archivos en db y entregados incompletos
-    self.reporte_incompletos = intersectar_listas(self.lista_archivos_registrados,
-      self.lista_archivos_entregados_incompletos)
+    self.reporte_incompletos = intersectar_listas_registrados_entregados(
+      self.lista_archivos_registrados, self.lista_archivos_entregados_incompletos)
 
     # 'lista_archivos_entregados' es una variable auxiliar
-    lista_archivos_entregados = unir_listas(self.lista_archivos_entregados_completos,
+    lista_archivos_entregados = unir_listas_entregados(
+      self.lista_archivos_entregados_completos,
       self.lista_archivos_entregados_incompletos)
 
     # diferencia entre archivos registrados y entregados:
     # = Archivos registrados y no entregados
-    self.reporte_no_entregados = restar_listas(self.lista_archivos_registrados,
-      lista_archivos_entregados)
+    self.reporte_no_entregados = restar_listas_registrados_entregados(
+      self.lista_archivos_registrados, lista_archivos_entregados)
+
+    # diferencia entre archivos anexos completos y archivos registrados:
+    # = Archivos anexos no registrados y completos.
+
+    self.reporte_anexos_completos = restar_listas_anexos_registrados(
+      self.lista_archivos_anexos_completos, self.lista_archivos_registrados)
+
+    # diferencia entre archivos anexos incompletos y archivos registrados:
+    # = Archivos anexos no registrados e incompletos.
+
+    self.reporte_anexos_incompletos = restar_listas_anexos_registrados(
+      self.lista_archivos_anexos_incompletos, self.lista_archivos_registrados)
       
     #imprimiendo reportes:
-    pd.DataFrame(self.reporte_ok).to_csv("reporte_ok.csv", encoding='utf-8')
-    pd.DataFrame(self.reporte_incompletos).to_csv("reporte_incompletos.csv",
+    pd.DataFrame(self.reporte_ok).to_csv(
+      self.REPORTE_OK_NOMBRE + self.REPORTE_OK_TIPO, encoding='utf-8')
+
+    pd.DataFrame(self.reporte_incompletos).to_csv(
+      self.REPORTE_INCOMPLETOS_NOMBRE + self.REPORTE_INCOMPLETOS_TIPO,
       encoding='utf-8')
-    pd.DataFrame(self.reporte_incompletos).to_csv("reporte_no_entregados.csv",
+
+    pd.DataFrame(self.reporte_no_entregados).to_csv(
+      self.REPORTE_FALTANTES_NOMBRE + self.REPORTE_FALTANTES_TIPO,
+      encoding='utf-8')
+
+    pd.DataFrame(self.reporte_anexos_completos).to_csv(
+      self.REPORTE_ANEXOS_COMPLETOS_NOMBRE + self.REPORTE_ANEXOS_COMPLETOS_TIPO,
+      encoding='utf-8')
+
+    pd.DataFrame(self.reporte_anexos_incompletos).to_csv(
+      self.REPORTE_ANEXOS_INCOMPLETOS_NOMBRE + self.REPORTE_ANEXOS_INCOMPLETOS_TIPO,
       encoding='utf-8')
 
     #if modo:
