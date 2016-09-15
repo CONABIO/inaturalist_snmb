@@ -9,10 +9,46 @@ from sqlite3 import connect
 from os import walk
 from os.path import isfile, join, splitext
 
-class ReporteadorArchivos(object):
+class ProcesarArchivosAnexos(object):
   
   """
-  Esta clase crea los diversos reportes que tienen que ver con los archivos
+  Esta clase toma está diseñada para ser corrida como entrega, y toma como
+  entradas para el constructor:
+  1. La ruta de la entrega que contiene los archivos anexos.
+  2. La ruta de la base de datos fusionada correspondiente a dicha entrega
+  (SQLite)
+  3. La ruta al query correspondiente para obtener la lista de archivos registrados
+  en la BD para dicha entrega.
+  4. La ruta al query correspondiente para obtener el nombre de conglomerado y
+  la fecha de visita para cada muestreo registrado en la base, con el fin de
+  poder asociar a cada carpeta de anexos, el muestreo de conglomerado al que pertenecen
+  los archivos y poder generar el script de SQL adecuado para hacer las inserciones
+  de los mismos a la base de datos final.
+  5. Las credenciales de la base de datos final (PostgreSQL), donde se realizarán
+  las inserciones.
+
+  Las salidas de esta clase son:
+  1. Una relación que, a cada carpeta en "datos_anexos" correspondiente a un
+  conglomerado, le asocie la clave conglomerado/fecha de visita que es una llave
+  del muestreo.
+  2. Una relación que, para cada carpeta de archivos anexos correspondientes a
+  un determinado conglomerado y tipo de archivo GA, GU CT, le asocie un campo
+  que nos permita saber cuántas cámaras / grabadoras hay declaradas en la base de
+  datos de dicha entrega (según corresponda), para el conglomerado y fecha de
+  visita correspondiente. Si tiene declarada la cámara trampa o grabadora,
+  le asociará el/los ID's correspondientes (en la base de datos final),
+  para poder generar los inserts.
+  3. Una relación que nos indique, para cada archivo entregado en anexos, si ya
+  está registrado en la base de datos. Para ello se utilizará la ruta de la carpeta
+  del archivo, la cuál se buscará en la relación anterior, con el fin obtener el
+  id de la cámara / grabadora correspondiente en la base de datos final. Se enlistarán
+  los archivos en anexos que no están registrados con anterioridad en la base de
+  datos (con su nombre común), junto con su id de cámara, y su posible nombre
+  nuevo (md5).
+  4. Archivo SQL con los inserts utilizando la información de la relación anterior.
+
+
+  crea los diversos reportes que tienen que ver con los archivos
   físicos y archivos registrados en la base de datos correspondientes a cada
   entrega. Estos reportes son:
 
