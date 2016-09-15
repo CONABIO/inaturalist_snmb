@@ -150,7 +150,6 @@ class ReporteadorArchivos(object):
 
             if bool(re.search('datos_anexos', datos_archivo['ruta'])):
               self.lista_archivos_anexos_completos.append(datos_archivo)
-
           else:
             self.lista_archivos_entregados_incompletos.append(datos_archivo)
 
@@ -193,6 +192,8 @@ class ReporteadorArchivos(object):
 
           self.lista_archivos_registrados.append(datos_archivo)
     #print self.lista_archivos_registrados
+
+# TODO: Cachar las excepciones en las listas vacias para los metodos que intersectan, unen y restan
 
   def intersectar_listas_registrados_entregados(self, lista_archivos_registrados,
     lista_archivos_entregados):
@@ -267,58 +268,58 @@ class ReporteadorArchivos(object):
     # Regresamos el resultado como una nueva lista de diccionarios.
     return diferencia.T.to_dict().values()
 
-  def crear_reportes(self,file,record,modo):
+  def crear_reportes(self): #file,record,modo):
 
     # interseccion archivos registrados contra archivos entregados completos
     # = Archivos en db y entregados completos
-    self.reporte_ok = intersectar_listas_registrados_entregados(
+    self.reporte_ok = self.intersectar_listas_registrados_entregados(
       self.lista_archivos_registrados, self.lista_archivos_entregados_completos)
 
     # intersección archivos registrados contra archivos entregados e incompletos
     # = Archivos en db y entregados incompletos
-    self.reporte_incompletos = intersectar_listas_registrados_entregados(
+    self.reporte_incompletos = self.intersectar_listas_registrados_entregados(
       self.lista_archivos_registrados, self.lista_archivos_entregados_incompletos)
 
     # 'lista_archivos_entregados' es una variable auxiliar
-    lista_archivos_entregados = unir_listas_entregados(
+    lista_archivos_entregados = self.unir_listas_entregados(
       self.lista_archivos_entregados_completos,
       self.lista_archivos_entregados_incompletos)
 
     # diferencia entre archivos registrados y entregados:
     # = Archivos registrados y no entregados
-    self.reporte_no_entregados = restar_listas_registrados_entregados(
+    self.reporte_no_entregados = self.restar_listas_registrados_entregados(
       self.lista_archivos_registrados, lista_archivos_entregados)
 
     # diferencia entre archivos anexos completos y archivos registrados:
     # = Archivos anexos no registrados y completos.
 
-    self.reporte_anexos_completos = restar_listas_anexos_registrados(
+    self.reporte_anexos_completos = self.restar_listas_anexos_registrados(
       self.lista_archivos_anexos_completos, self.lista_archivos_registrados)
 
     # diferencia entre archivos anexos incompletos y archivos registrados:
     # = Archivos anexos no registrados e incompletos.
 
-    self.reporte_anexos_incompletos = restar_listas_anexos_registrados(
+    self.reporte_anexos_incompletos = self.restar_listas_anexos_registrados(
       self.lista_archivos_anexos_incompletos, self.lista_archivos_registrados)
       
     #imprimiendo reportes:
     pd.DataFrame(self.reporte_ok).to_csv(
-      self.REPORTE_OK_NOMBRE + self.REPORTE_OK_TIPO, encoding='utf-8')
+      self.REPORTE_OK_NOMBRE + "." + self.REPORTE_OK_TIPO, encoding='utf-8')
 
     pd.DataFrame(self.reporte_incompletos).to_csv(
-      self.REPORTE_INCOMPLETOS_NOMBRE + self.REPORTE_INCOMPLETOS_TIPO,
+      self.REPORTE_INCOMPLETOS_NOMBRE + "." + self.REPORTE_INCOMPLETOS_TIPO,
       encoding='utf-8')
 
     pd.DataFrame(self.reporte_no_entregados).to_csv(
-      self.REPORTE_FALTANTES_NOMBRE + self.REPORTE_FALTANTES_TIPO,
+      self.REPORTE_FALTANTES_NOMBRE + "." + self.REPORTE_FALTANTES_TIPO,
       encoding='utf-8')
 
     pd.DataFrame(self.reporte_anexos_completos).to_csv(
-      self.REPORTE_ANEXOS_COMPLETOS_NOMBRE + self.REPORTE_ANEXOS_COMPLETOS_TIPO,
+      self.REPORTE_ANEXOS_COMPLETOS_NOMBRE + "." + self.REPORTE_ANEXOS_COMPLETOS_TIPO,
       encoding='utf-8')
 
     pd.DataFrame(self.reporte_anexos_incompletos).to_csv(
-      self.REPORTE_ANEXOS_INCOMPLETOS_NOMBRE + self.REPORTE_ANEXOS_INCOMPLETOS_TIPO,
+      self.REPORTE_ANEXOS_INCOMPLETOS_NOMBRE + "." + self.REPORTE_ANEXOS_INCOMPLETOS_TIPO,
       encoding='utf-8')
 
     #if modo:
@@ -380,6 +381,12 @@ class ReporteadorArchivos(object):
      self.generate_crude_file(self.get_image_files(), self.get_image_dbrecord(), self.IMAGE_TAG)
      self.generate_crude_file(self.get_video_files(), self.get_video_dbrecord(), self.VIDEO_TAG)
 
+  def generar_insert_sql(self):
+    # insert into ARCHIVO_CAMARA (id,camara_id,archivo_nombre_original,archivo,presencia,nombre_comun,nombre_cientifico,numero_individuo) VALUES ('conglomerado','fecha','gatito.jpg', 'd41d8cd98f00b204e9800998ecf8427e', NULL,NULL,NULL,1);
+    inicio_tablas = "insert into ARCHIVO_CAMARA (camara_id,archivo_nombre_original,archivo,presencia,nombre_comun,nombre_cientifico,numero_individuos) VALUES ("
+    fin_tablas = ");"
+
+
   def obtener_query(self):
     with open(self.ruta_query_sql, 'r') as archivo:
       query = archivo.read()
@@ -431,4 +438,5 @@ class ReporteadorArchivos(object):
       return self.video_num_report
     else:
       return self.video_str_report
+
 
