@@ -45,12 +45,13 @@ print
 #
 ############
 
-#Geting the information from SNMB database
+#Getting the information from SNMB database
 url = "http://coati.conabio.gob.mx/api/v1/conglomerados"
 response = urllib.urlopen(url)
 snmb_data = json.loads(response.read())
 #print snmb_data
 
+#TODO: add the file using multipart/jpeg file
 payload = {
 'observation[species_guess]' : 'Northern Cardinal',
 'observation[taxon_id]' : '9083',
