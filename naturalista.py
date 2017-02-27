@@ -15,11 +15,11 @@ payload = {
   'username': username,
   'password': password
 }
-print "POST %s/oauth/token, payload: %s" % (site, payload)
+#print "POST %s/oauth/token, payload: %s" % (site, payload)
 response = requests.post(("%s/oauth/token" % site), payload)
-print "RESPONSE"
-print response.content
-print
+#print "RESPONSE"
+#print response.content
+#print
 # response will be a chunk of JSON looking like
 # {
 #   "access_token":"xxx",
@@ -33,11 +33,11 @@ print
 # requests on behalf of the user, like retrieving profile data:
 token = response.json()["access_token"]
 headers = {"Authorization": "Bearer %s" % token}
-print "GET %s/users/edit.json, headers: %s" % (site, headers)
-print "RESPONSE"
-print requests.get(("%s/users/edit.json" % site), headers=headers).content
+#print "GET %s/users/edit.json, headers: %s" % (site, headers)
+#print "RESPONSE"
+#print requests.get(("%s/users/edit.json" % site), headers=headers).content
 #print requests.get(("%s/observations/5154583.json" % site), headers=headers).content
-print
+#print
 
 ############
 #
@@ -46,30 +46,51 @@ print
 ############
 
 #Getting the information from SNMB database
-url = "http://coati.conabio.gob.mx/api/v1/conglomerados"
+url = "http://coati.conabio.gob.mx/api/v1/naturalista"
 response = urllib.urlopen(url)
 snmb_data = json.loads(response.read())
 #print snmb_data
 
 #TODO: add the file using multipart/jpeg file
-payload = {
-'observation[species_guess]' : 'Northern Cardinal',
-'observation[taxon_id]' : '9083',
+payload = [{
+'observation[species_guess]' : 'Odocoileus virginianus',
+'observation[taxon_id]' : 0,
 'observation[id_please]' : '0',
-'observation[observed_on_string]' : '2013-01-03',
-'observation[time_zone]' : 'Eastern+Time+(US+%26+Canada)',
-'observation[description]' : 'Prueba de Cardenal',
+'observation[observed_on_string]' : '2016-07-08',
+'observation[time_zone]' : 'Mexico City ',
+'observation[description]' : 'Prueba de EOMA 1',
 'observation[tag_list]' : 'foo,bar',
-'observation[place_guess]' : 'clinton,+ct',
-'observation[latitude]' : '41.27872259999999',
-'observation[longitude]' : '-72.5276073',
+'observation[place_guess]' : 'Tamaulipas',
+'observation[latitude]' : '24.9318454',
+'observation[longitude]' : '-100.8891331',
 'observation[map_scale]' : '11',
 'observation[location_is_exact]' : 'false',
 'observation[positional_accuracy]' : '7798',
-'observation[geoprivacy]' : 'obscured',
-'observation[observation_field_values_attributes][0][observation_field_id]': '5',
-'observation[observation_field_values_attributes][0][value]' : 'male'
+'observation[geoprivacy]' : 'obscured'
+},
+{
+'observation[species_guess]' : 'Mimus gilvus',
+'observation[taxon_id]' : 0,
+'observation[id_please]' : '0',
+'observation[observed_on_string]' : '2016-07-08',
+'observation[time_zone]' : 'Mexico City ',
+'observation[description]' : 'Prueba de EOMA 2',
+'observation[tag_list]' : 'SAC-MOD',
+'observation[place_guess]' : 'Tamaulipas',
+'observation[latitude]' : '24.9318454',
+'observation[longitude]' : '-100.8891331',
+'observation[map_scale]' : '11',
+'observation[location_is_exact]' : 'false',
+'observation[positional_accuracy]' : '7798',
+'observation[geoprivacy]' : 'obscured'
 }
-response = requests.post(("%s/observations.json" % site), payload, headers=headers)
-print response.content
+]
+# TESTING
+#response = requests.post(("%s/observations.json" % site), payload[1], headers=headers)
+#print response.content
 
+for item in snmb_data["data"]:
+    print item
+    #response = requests.post(("%s/observations.json" % site), item, headers=headers)
+    #print response.content
+    #print
