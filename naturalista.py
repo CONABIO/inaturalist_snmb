@@ -82,8 +82,7 @@ for item in payload:
     print response.content
     data = json.loads(response.content)
     observation_id = data[0]['id']
-    location_file = './'
-    filename = location_file + item['local_photos[0]']
+    filename = item['local_photos[0]']
     payload2 = {"observation_photo[observation_id]" : observation_id}
     response = requests.post("%s/observation_photos.json" % site, data=payload2, files={'file': (os.path.basename(filename), open(filename, 'rb'), 'multipart/form-data')}, headers=headers_photo)
     print response.content
