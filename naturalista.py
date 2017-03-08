@@ -1,5 +1,7 @@
 import requests
 import urllib, json
+import os
+
 
 site = "https://www.inaturalist.org"
 app_id = 'f3f000ecc92eaa050f56cf35fe60469ebc634a6a86b48fad6f6b779fa4048c7e'
@@ -32,7 +34,8 @@ response = requests.post(("%s/oauth/token" % site), payload)
 # Store the token (access_token) in your app. You can now use it to make authorized
 # requests on behalf of the user, like retrieving profile data:
 token = response.json()["access_token"]
-headers = {"Authorization": "Bearer %s" % token}
+headers_observations = {"Content Type": "application/x-www-form-urlencoded","Authorization": "Bearer %s" % token}
+headers_photo = {"Authorization": "Bearer %s" % token}
 #print "GET %s/users/edit.json, headers: %s" % (site, headers)
 #print "RESPONSE"
 #print requests.get(("%s/users/edit.json" % site), headers=headers).content
@@ -46,51 +49,44 @@ headers = {"Authorization": "Bearer %s" % token}
 ############
 
 #Getting the information from SNMB database
-url = "http://coati.conabio.gob.mx/api/v1/naturalista"
-response = urllib.urlopen(url)
-snmb_data = json.loads(response.read())
+#url = "http://coati.conabio.gob.mx/api/v1/naturalista"
+#response = urllib.urlopen(url)
+#snmb_data = json.loads(response.read())
 #print snmb_data
 
-#TODO: add the file using multipart/jpeg file
-payload = [{
-'observation[species_guess]' : 'Odocoileus virginianus',
-'observation[taxon_id]' : 0,
-'observation[id_please]' : '0',
-'observation[observed_on_string]' : '2016-07-08',
-'observation[time_zone]' : 'Mexico City ',
-'observation[description]' : 'Prueba de EOMA 1',
-'observation[tag_list]' : 'foo,bar',
-'observation[place_guess]' : 'Tamaulipas',
-'observation[latitude]' : '24.9318454',
-'observation[longitude]' : '-100.8891331',
-'observation[map_scale]' : '11',
-'observation[location_is_exact]' : 'false',
-'observation[positional_accuracy]' : '7798',
-'observation[geoprivacy]' : 'obscured'
-},
-{
-'observation[species_guess]' : 'Mimus gilvus',
-'observation[taxon_id]' : 0,
-'observation[id_please]' : '0',
-'observation[observed_on_string]' : '2016-07-08',
-'observation[time_zone]' : 'Mexico City ',
-'observation[description]' : 'Prueba de EOMA 2',
-'observation[tag_list]' : 'SAC-MOD',
-'observation[place_guess]' : 'Tamaulipas',
-'observation[latitude]' : '24.9318454',
-'observation[longitude]' : '-100.8891331',
-'observation[map_scale]' : '11',
-'observation[location_is_exact]' : 'false',
-'observation[positional_accuracy]' : '7798',
-'observation[geoprivacy]' : 'obscured'
-}
+payload = [
+       {
+            "observation[species_guess]": "Sylvilagus cunicularius",
+            "observation[observed_on_string]": "2014-08-19T05:00:00.000Z",
+            "observation[latitude]": 19.7361666666667,
+            "observation[longitude]": -103.092666666667,
+            "observation[place_guess]": "Jalisco, Tamazula",
+            "observation[tag_list]": "conglomerado_muestra_id: 256, conglomerado_nombre: 59000, archivo_camara_id: 304, monitoreo_tipo: SAC-MOD",
+            "local_photos[0]": "./132145/2015_09/fotos_videos/Archivo_camara.acb3860a43ead0dc.JPG"
+        },
+        {
+            "observation[species_guess]": "campyylorhynchus brunneicapillus",
+            "observation[observed_on_string]": "2015-11-23T06:00:00.000Z",
+            "observation[latitude]": 23.5254166666667,
+            "observation[longitude]": -110.048166666667,
+            "observation[place_guess]": "Baja California Sur, La Paz, SIERRA LA LAGUNA",
+            "observation[tag_list]": "conglomerado_muestra_id: 1055, conglomerado_nombre: 40429, archivo_camara_id: 191962, monitoreo_tipo: SAR-MOD",
+            "local_photos[0]": "./40429/2015_11/fotos_videos/Archivo_camara.831eb8a44cf4bb80.JPG"
+        }
 ]
-# TESTING
-#response = requests.post(("%s/observations.json" % site), payload[1], headers=headers)
-#print response.content
 
-for item in snmb_data["data"]:
-    print item
-    #response = requests.post(("%s/observations.json" % site), item, headers=headers)
-    #print response.content
-    #print
+#for item in snmb_data["data"]:
+for item in payload:
+    response = requests.post(("%s/observations.json" % site), item, headers=headers_observations)
+    print '==================='
+    print response.content
+    data = json.loads(response.content)
+    observation_id = data[0]['id']
+    location_file = './'
+    filename = location_file + item['local_photos[0]']
+    payload2 = {"observation_photo[observation_id]" : observation_id}
+    response = requests.post("%s/observation_photos.json" % site, data=payload2, files={'file': (os.path.basename(filename), open(filename, 'rb'), 'multipart/form-data')}, headers=headers_photo)
+    print response.content
+    print '==================='
+    print
+    print filename
