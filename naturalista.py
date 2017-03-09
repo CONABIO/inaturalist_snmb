@@ -19,26 +19,25 @@ payload = {
   'username': username,
   'password': password
 }
+#print "POST %s/oauth/token, payload: %s" % (site, payload)
 response = requests.post(("%s/oauth/token" % site), payload)
 
 
+# Store the token (access_token) in your app. You can now use it to make authorized
+# requests on behalf of the user, like retrieving profile data:
 token = response.json()["access_token"]
 headers_observations = {"Content Type": "application/x-www-form-urlencoded; charset=utf-8","Authorization": "Bearer %s" % token}
 headers_photo = {"Authorization": "Bearer %s" % token}
 
 
-#Getting the information from SNMB database
+# Getting the information from SNMB database
 url = "http://coati.conabio.gob.mx/api/v1/naturalista"
 response = urllib.urlopen(url)
 snmb_data = json.loads(response.read())
-#print snmb_data
 
-
-
+# Sending observations and photos to naturalista
 for item in snmb_data["data"]:
-#for item in payload:
     response = requests.post(("%s/observations.json" % site), item, headers=headers_observations)
-    print '==================='
     print response.content
     data = json.loads(response.content)
     observation_id = data[0]['id']
@@ -48,4 +47,4 @@ for item in snmb_data["data"]:
     print response.content
     print '==================='
     print
-    print filename
+
