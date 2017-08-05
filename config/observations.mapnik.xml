@@ -1,0 +1,33 @@
+<Map srs="+proj=latlong +datum=WGS84">
+  <Style name="observationsStyle">
+    <Rule>
+      <Filter>[iconic_taxon_id] = 13</Filter>
+      <PointSymbolizer file="/home/emiranda/inaturalist/public/mapMarkers/mm_8_stemless_iNatGreen.png" type="png" width="8" height="8" />
+    </Rule>
+    <Rule>
+      <Filter>[iconic_taxon_id] = 3 or [iconic_taxon_id] = 6 or [iconic_taxon_id] = 9 or [iconic_taxon_id] = 4 or [iconic_taxon_id] = 8 or [iconic_taxon_id] = 7</Filter>
+      <PointSymbolizer file="/home/emiranda/inaturalist/public/mapMarkers/mm_8_stemless_DodgerBlue.png" type="png" width="8" height="8" />
+    </Rule>
+    <Rule>
+      <Filter>[iconic_taxon_id] = 12 or [iconic_taxon_id] = 10 or [iconic_taxon_id] = 16</Filter>
+      <PointSymbolizer file="/home/emiranda/inaturalist/public/mapMarkers/mm_8_stemless_OrangeRed.png" type="png" width="8" height="8" />
+    </Rule>
+    <Rule>
+      <Filter>[iconic_taxon_id] = 14</Filter>
+      <PointSymbolizer file="/home/emiranda/inaturalist/public/mapMarkers/mm_8_stemless_DeepPink.png" type="png" width="8" height="8" />
+    </Rule>
+    <Rule>
+      <ElseFilter/>
+      <PointSymbolizer file="/home/emiranda/inaturalist/public/mapMarkers/mm_8_stemless_unknown.png" type="png" width="8" height="8" />
+    </Rule>
+  </Style>
+
+  <Layer name="observationsLayer" srs="+proj=latlong +datum=WGS84">
+    <StyleName>observationsStyle</StyleName>
+    <Datasource>
+      <Parameter name="type">ogr</Parameter>
+      <Parameter name="file">/home/emiranda/inaturalist/config/observations_development.ogr.vrt</Parameter>
+      <Parameter name="layer">observations</Parameter>
+    </Datasource>
+  </Layer>
+</Map>

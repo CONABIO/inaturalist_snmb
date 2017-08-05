@@ -1,0 +1,32 @@
+- project ||= update_curator_change
+.timeline-body
+  - for update in updates
+    :ruby
+      project_user = update.notifier
+      user = project_user.user
+      role = if project_user.user_id == project_user.project.user_id
+        "the <strong>admin</strong>".html_safe
+      elsif project_user.role.to_s =~ /^[aeiou]/
+        "an <strong>#{project_user.role}</strong>".html_safe
+      else
+        "a <strong>#{project_user.role}</strong>".html_safe
+      end
+    %ul
+      %li
+        - if is_me?(user)
+          =t :you_are_now
+        - else
+          = link_to_user user
+          =t :is_now
+        = role
+        - unless user.description.blank? || is_me?(user)
+          =t :heres_a_little_about
+          = surround '', ': ' do
+            = user.login
+          %blockquote= truncate(strip_tags(user.description), length: 100, escape: false)
+        - if user.id == current_user.id && project.user_id == current_user.id
+          .notice.status.box
+            =t "views.users.dashboard.new_project_admin_html", site_name: SITE_NAME_SHORT, help_email: CONFIG.help_email
+  %p.alert.alert-info
+    =t :just_a_reminder
+  

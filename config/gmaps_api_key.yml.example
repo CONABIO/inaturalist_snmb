@@ -1,0 +1,15 @@
+# Fill here the Google Maps API keys for your application, used by ym4r,
+# georuby, etc.
+
+# In this sample:
+# For development and test, we have only one possible host (localhost:3000),
+# so there is only a single key associated with the mode.
+
+# localhost:3000
+development: AIzaSyB5wIyX1uQ7onyP85hZoE7R5v4qTONc510
+
+# localhost:3000
+test: AIzaSyB5wIyX1uQ7onyP85hZoE7R5v4qTONc510
+
+# localhost:3000
+production: AIzaSyB5wIyX1uQ7onyP85hZoE7R5v4qTONc510

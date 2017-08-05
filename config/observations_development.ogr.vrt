@@ -1,0 +1,8 @@
+<OGRVRTDataSource>
+    <OGRVRTLayer name="observations">
+        <SrcDataSource>POSTGIS:inaturalist_development,user=postgres,host=localhost,password=000999000,tables=observations</SrcDataSource> 
+        <SrcSQL>SELECT id, latitude, longitude, iconic_taxon_id FROM observations ORDER BY id DESC</SrcSQL> 
+        <GeometryType>wkbPoint</GeometryType>
+        <GeometryField encoding="PointFromColumns" x="longitude" y="latitude"/> 
+    </OGRVRTLayer>
+</OGRVRTDataSource>
