@@ -9,35 +9,20 @@ base: &base
     site_id: 1
 
     # url of the site
-    site_url: http://snmb.conabio.gob.mx
+    site_url: http://localhost:3000/
 
     # name of the site, used extensively within the app
-    site_name: SNMB
+    site_name: eomaSite
     locale: es
 
     # shortened version of the name
     site_name_short: YS
 
     # Email addresses
-    admin_email: emiranda@coanbio.gob.mx
-    noreply_email: no-reply@conabio.gob.mx
-    help_email: help@conabio.gob.mx
-    info_email: info@conabio.gob.mx
-
-    # site contact, mainly just used for GBIF archive generation
-    # contact:
-    #     first_name: Omar
-    #     last_name: Miranda
-    #     organization: SNMB
-    #     position: developer
-    #     address: 4 Privet Dr.
-    #     city: Little Whinging
-    #     admin_area: Surrey
-    #     postal_code: 94618
-    #     country: UK
-    #     phone: xxx-xxx-xxx
-    #     email: emiranda@conabio.gob.mx
-    #     url: http://buho.conabio.gob.mx
+    admin_email: emiranda@nomail.com
+    noreply_email: no-reply@nomail.com
+    help_email: help@nomail.com
+    info_email: info@nomail.com
 
     # header logo, should be 118x22
     logo: logo-small.gif
@@ -117,7 +102,6 @@ base: &base
     # species descriptions from these sources in this order, trying the next
     # if one fails. You can see all the available describers in
     # lib/taxon_describers/lib/taxon_describers
-    # taxon_describers: [conabio, wikipediaes, wikipedia, eol]
 
     # If you'd prefer the default taxon ranges to come from a particular Source, set the source ID here
     # taxon_range_source_id: 7538
@@ -158,14 +142,14 @@ base: &base
         # See http://bitbucket.org/springmeyer/tilelite/
         observations: 'http://localhost:8000'
         tilestache: 'http://localhost:8080'
-        elasticsearch: http://snmb.conabio.gob.mx:4000
+        elasticsearch: http://localhost:4000
 
     google_webmaster:
         verification: abiglongkey
 
     # s3_bucket: 'yourbucketname'
 
-    memcached: 'snmb.conabio.gob.mx'
+    memcached: 'localhost'
 
     # Key for spam filtering with akismet. See http://akismet.com/development/api/
     rakismet_key: abc123
@@ -244,7 +228,7 @@ base: &base
 
     # An instance of https://github.com/inaturalist/iNaturalistAPI, the
     # same code running at CONFIG.tile_servers.elasticsearch
-    node_api_url: http://snmb.conabio.gob.mx:4000/v1
+    node_api_url: http://localhost:4000/v1
 
 development:
     <<: *base
