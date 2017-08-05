@@ -12,7 +12,7 @@ base: &base
     site_url: http://localhost:3000/
 
     # name of the site, used extensively within the app
-    site_name: eomaSite
+    site_name: SNMB Testing Site 
     locale: es
 
     # shortened version of the name
