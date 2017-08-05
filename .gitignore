@@ -3,3 +3,4 @@ log/*
 *.log
 elasticsearch/*
 node_modules/*
+public/local_photos
